@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My E-commerce Store</title>
+    <!-- Tailwind CSS CDN (for utility classes) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- External CSS file -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4">
+        <nav class="container mx-auto px-4 flex justify-between items-center">
+            <a href="#" id="buttonhdrmystore" class="text-2xl font-bold text-indigo-600" onclick="showPage('product-listing')">MyStore</a>
+            <div class="space-x-4">
+                <button id="buttonhdr" class="text-gray-600 hover:text-indigo-600" onclick="showPage('product-listing')">Products</button>
+                <button id="buttonhdr" class="text-gray-600 hover:text-indigo-600" onclick="showPage('cart')">Cart (<span id="cart-count">0</span>)</button>
+                <span id="auth-links">
+                    <button id="buttonhdr" class="text-gray-600 hover:text-indigo-600" onclick="showPage('login')">Login</button>
+                    <button id="buttonhdr" class="text-gray-600 hover:text-indigo-600" onclick="showPage('register')">Register</button>
+                </span>
+                <span id="user-info" class="hidden">
+                    <span class="text-gray-600">Welcome, <span id="logged-in-username"></span>!</span> 
+                    <button class="text-gray-600 hover:text-indigo-600" onclick="logout()">Logout</button>
+                </span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+
+        <!-- Product Listing Page -->
+        <section id="product-listing" class="page-section active">
+            <h6 class="text-3xl font-bold text-gray-800 mb-6">Our Products</h6>
+            <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Products will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Product Details Page -->
+        <section id="product-detail" class="page-section">
+            <button class="btn-secondary mb-4" onclick="showPage('product-listing')">&larr; Back to Products</button>
+            <div id="product-detail-content" class="bg-white p-8 rounded-lg shadow-lg flex flex-col md:flex-row items-center md:items-start gap-8">
+                <!-- Product details will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Shopping Cart Page -->
+        <section id="cart" class="page-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Your Shopping Cart</h2>
+            <div id="cart-items" class="bg-white p-6 rounded-lg shadow-lg mb-6">
+                <!-- Cart items will be dynamically loaded here -->
+                <p id="empty-cart-message" class="text-gray-500 text-center py-8 hidden">Your cart is empty.</p>
+            </div>
+            <div class="flex justify-between items-center bg-white p-6 rounded-lg shadow-lg">
+                <p class="text-xl font-semibold">Total: $<span id="cart-total">0.00</span></p>
+                <button id="checkout-button" class="btn-primary" onclick="checkout()">Checkout</button>
+            </div>
+        </section>
+
+        <!-- User Login Page -->
+        <section id="login" class="page-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Login to Your Account</h2>
+            <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="mb-4">
+                        <label for="login-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+                        <input type="text" id="login-username" class="input-field" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="login-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                        <input type="password" id="login-password" class="input-field" required>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Login</button>
+                    <p class="text-center text-gray-600 text-sm mt-4">Don't have an account? <a href="#" class="text-indigo-600 hover:underline" onclick="showPage('register')">Register here</a></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- User Registration Page -->
+        <section id="register" class="page-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Create an Account</h2>
+            <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+                <form id="register-form" onsubmit="handleRegister(event)">
+                    <div class="mb-4">
+                        <label for="register-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+                        <input type="text" id="register-username" class="input-field" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="register-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                        <input type="password" id="register-password" class="input-field" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="register-confirm-password" class="block text-gray-700 text-sm font-bold mb-2">Confirm Password:</label>
+                        <input type="password" id="register-confirm-password" class="input-field" required>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Register</button>
+                    <p class="text-center text-gray-600 text-sm mt-4">Already have an account? <a href="#" class="text-indigo-600 hover:underline" onclick="showPage('login')">Login here</a></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Order Confirmation Modal -->
+        <div id="order-confirmation-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('order-confirmation-modal')">&times;</span>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Order Confirmed!</h3>
+                <p class="text-gray-700 mb-4">Thank you for your purchase. Your order has been placed successfully.</p>
+                <p class="text-gray-700">Order ID: <span id="confirmed-order-id" class="font-semibold"></span></p>
+                <button class="btn-primary mt-6 w-full" onclick="closeModal('order-confirmation-modal'); showPage('product-listing');">Continue Shopping</button>
+            </div>
+        </div>
+
+        <!-- Message Modal (for alerts/errors) -->
+        <div id="message-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('message-modal')">&times;</span>
+                <h3 id="message-modal-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
+                <p id="message-modal-content" class="text-gray-700 mb-4"></p>
+                <button class="btn-primary mt-6 w-full" onclick="closeModal('message-modal')">OK</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-sm py-4 mt-8">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            &copy; 2023 MyStore. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Base URL for your backend API
+        // THIS MUST POINT TO WHERE YOUR EXPRESS.JS SERVER IS RUNNING (usually port 3000)
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        let products = []; // Products fetched from backend
+        let cart = JSON.parse(localStorage.getItem('cart')) || []; // Client-side cart for simplicity
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null; // User data from JWT payload
+        let token = localStorage.getItem('token') || null; // JWT token
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a custom modal message instead of alert().
+         * @param {string} title - The title of the message.
+         * @param {string} message - The content of the message.
+         */
+        function showMessage(title, message) {
+            document.getElementById('message-modal-title').textContent = title;
+            document.getElementById('message-modal-content').textContent = message;
+            document.getElementById('message-modal').style.display = 'flex';
+        }
+
+        /**
+         * Closes a specified modal.
+         * @param {string} modalId - The ID of the modal to close.
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        /**
+         * Shows a specific page section and hides others.
+         * @param {string} pageId - The ID of the page section to show.
+         */
+        function showPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            // Re-render cart when navigating to it
+            if (pageId === 'cart') {
+                renderCart();
+            }
+            // Clear forms on page switch
+            if (pageId === 'login') {
+                document.getElementById('login-form').reset();
+            } else if (pageId === 'register') {
+                document.getElementById('register-form').reset();
+            }
+        }
+
+        /**
+         * Updates the cart count displayed in the header.
+         */
+        function updateCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').textContent = totalItems;
+        }
+
+        /**
+         * Renders the list of products on the product listing page by fetching from the backend.
+         */
+        async function renderProducts() {
+            const productListDiv = document.getElementById('product-list');
+            productListDiv.innerHTML = '<p class="text-center text-gray-500 col-span-full">Loading products...</p>'; // Loading indicator
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/products`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch products');
+                }
+                products = await response.json(); // Update the local products array
+
+                productListDiv.innerHTML = ''; // Clear loading indicator
+                products.forEach(product => {
+                    const productCard = `
+                        <div class="product-card bg-white rounded-lg shadow-md overflow-hidden flex flex-col justify-between">
+                            <img src="${product.image_url}" alt="${product.product_name}" class="w-full h-48 object-cover">
+                            <div class="p-5 flex-grow">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">${product.product_name}</h3>
+                                <p class="text-gray-600 mb-4">$${parseFloat(product.price).toFixed(2)}</p>
+                            </div>
+                            <div class="p-5 border-t border-gray-100 flex justify-between items-center">
+                                <button id="viewDetails" class="btn-secondary text-sm" onclick="viewProductDetails('${product.product_id}')">View Details</button>
+                                <button class="btn-primary text-sm" onclick="addToCart('${product.product_id}')">Add to Cart</button>
+                            </div>
+                        </div>
+                    `;
+                    productListDiv.innerHTML += productCard;
+                });
+            } catch (error) {
+                console.error('Error rendering products:', error);
+                productListDiv.innerHTML = `<p class="text-center text-red-500 col-span-full">Failed to load products: ${error.message}. Please ensure the backend server is running.</p>`;
+            }
+        }
+
+        /**
+         * Displays the details of a specific product by fetching from the backend.
+         * @param {number} productId - The ID of the product to display.
+         */
+        async function viewProductDetails(productId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/products/${productId}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch product details');
+                }
+                const product = await response.json();
+
+                const productDetailContentDiv = document.getElementById('product-detail-content');
+                productDetailContentDiv.innerHTML = `
+                    <div class="md:w-1/2">
+                        <img src="${product.image_url}" alt="${product.product_name}" class="w-full h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-1/2">
+                        <h2 class="text-4xl font-bold text-gray-800 mb-4">${product.product_name}</h2>
+                        <p class="text-2xl text-indigo-600 font-semibold mb-6">$${parseFloat(product.price).toFixed(2)}</p>
+                        <p class="text-gray-700 mb-6 leading-relaxed">${product.description}</p>
+                        <div class="flex items-center space-x-4 mb-6">
+                            <label for="quantity" class="text-gray-700 font-medium">Quantity:</label>
+                            <input type="number" id="detail-quantity" value="1" min="1" max="${product.stock_quantity}" class="w-20 p-2 border border-gray-300 rounded-lg text-center">
+                            <span class="text-gray-500 text-sm">(${product.stock_quantity} in stock)</span>
+                        </div>
+                        <button class="btn-primary w-full" onclick="addToCart('${product.product_id}', document.getElementById('detail-quantity').value)">Add to Cart</button>
+                    </div>
+                `;
+                showPage('product-detail');
+            } catch (error) {
+                console.error('Error viewing product details:', error);
+                showMessage('Error', error.message || 'Failed to load product details.');
+            }
+        }
+
+        /**
+         * Adds a product to the client-side shopping cart.
+         * @param {number} productId - The ID of the product to add.
+         * @param {number} [quantity=1] - The quantity to add.
+         */
+        async function addToCart(productId, quantity = 1) {
+            const qtyToAdd = parseInt(quantity);
+            if (isNaN(qtyToAdd) || qtyToAdd < 1) {
+                showMessage('Invalid Quantity', 'Quantity must be at least 1.');
+                return;
+            }
+
+            // Find the product details from the locally cached products array
+            const product = products.find(p => p.product_id == productId); // Use == for type coercion
+            if (!product) {
+                showMessage('Error', 'Product not found in local cache. Please refresh.');
+                return;
+            }
+
+            // Check stock (client-side check, backend will re-validate)
+            if (qtyToAdd > product.stock_quantity) {
+                showMessage('Out of Stock', `Only ${product.stock_quantity} of ${product.product_name} are available.`);
+                return;
+            }
+
+            const existingItem = cart.find(item => item.product_id == productId);
+            if (existingItem) {
+                if (existingItem.quantity + qtyToAdd > product.stock_quantity) {
+                    showMessage('Out of Stock', `Adding ${qtyToAdd} would exceed available stock. Only ${product.stock_quantity - existingItem.quantity} more available.`);
+                    return;
+                }
+                existingItem.quantity += qtyToAdd;
+            } else {
+                cart.push({
+                    product_id: product.product_id,
+                    product_name: product.product_name,
+                    price: parseFloat(product.price),
+                    image_url: product.image_url,
+                    quantity: qtyToAdd,
+                    stock_quantity: product.stock_quantity // Store for client-side validation
+                });
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            showMessage('Added to Cart', `${qtyToAdd} x ${product.product_name} added to your cart!`);
+        }
+
+        /**
+ * Renders the items in the client-side shopping cart.
+ */
+function renderCart() {
+    const cartItemsDiv = document.getElementById('cart-items');
+    const cartTotalSpan = document.getElementById('cart-total');
+    const emptyCartMessage = document.getElementById('empty-cart-message');
+    const checkoutButton = document.getElementById('checkout-button');
+
+    // Add null checks to prevent the TypeError
+    if (!cartItemsDiv || !cartTotalSpan || !emptyCartMessage || !checkoutButton) {
+        console.error('One or more cart DOM elements not found. Cannot render cart.');
+        return; // Exit the function gracefully
+    }
+
+    cartItemsDiv.innerHTML = ''; // Clear existing cart items
+    let total = 0;
+
+    if (cart.length === 0) {
+        emptyCartMessage.classList.remove('hidden');
+        checkoutButton.disabled = true;
+        checkoutButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        emptyCartMessage.classList.add('hidden');
+        checkoutButton.disabled = false;
+        checkoutButton.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+
+            const cartItemHtml = `
+                <div class="flex items-center justify-between py-4 border-b last:border-b-0">
+                    <div class="flex items-center space-x-4">
+                        <img src="${item.image_url}" alt="${item.product_name}" class="w-16 h-16 object-cover rounded-md">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${item.product_name}</h4>
+                            <p class="text-gray-600">$${item.price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <input type="number" value="${item.quantity}" min="1" max="${item.stock_quantity}"
+                            onchange="updateCartQuantity('${item.product_id}', this.value)"
+                            class="w-20 p-2 border border-gray-300 rounded-lg text-center">
+                        <p class="font-semibold text-gray-800">$${itemTotal.toFixed(2)}</p>
+                        <button class="text-red-500 hover:text-red-700" onclick="removeFromCart('${item.product_id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            cartItemsDiv.innerHTML += cartItemHtml;
+        });
+    }
+    cartTotalSpan.textContent = total.toFixed(2);
+    updateCartCount();
+}
+        /**
+         * Updates the quantity of an item in the client-side cart.
+         * @param {number} productId - The ID of the product.
+         * @param {string} newQuantity - The new quantity as a string.
+         */
+        function updateCartQuantity(productId, newQuantity) {
+            const qty = parseInt(newQuantity);
+            if (isNaN(qty) || qty < 1) {
+                showMessage('Invalid Quantity', 'Please enter a valid quantity (minimum 1).');
+                renderCart(); // Re-render to revert to last valid quantity
+                return;
+            }
+
+            const item = cart.find(i => i.product_id == productId);
+            if (item) {
+                // Get the latest stock quantity from the products array
+                const product = products.find(p => p.product_id == productId);
+                if (product && qty > product.stock_quantity) {
+                    showMessage('Out of Stock', `Only ${product.stock_quantity} of ${product.product_name} are available.`);
+                    renderCart(); // Revert to last valid quantity
+                    return;
+                }
+                item.quantity = qty;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                renderCart();
+            }
+        }
+
+        /**
+         * Removes a product from the client-side shopping cart.
+         * @param {number} productId - The ID of the product to remove.
+         */
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.product_id != productId);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+            showMessage('Item Removed', 'Product removed from your cart.');
+        }
+
+        /**
+         * Handles the checkout process by sending the cart to the backend.
+         */
+        async function checkout() {
+            if (cart.length === 0) {
+                showMessage('Cart Empty', 'Your cart is empty. Please add items before checking out.');
+                return;
+            }
+
+            if (!token || !currentUser) {
+                showMessage('Login Required', 'Please log in or register to proceed with checkout.');
+                showPage('login');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        items: cart.map(item => ({
+                            productId: item.product_id,
+                            quantity: item.quantity,
+                            priceAtPurchase: item.price // Send current price for backend validation
+                        })),
+                        total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Order processing failed');
+                }
+
+                // Clear the cart locally and update UI
+                cart = [];
+                localStorage.removeItem('cart');
+                updateCartCount();
+                renderCart();
+
+                document.getElementById('confirmed-order-id').textContent = data.orderId;
+                document.getElementById('order-confirmation-modal').style.display = 'flex';
+
+            } catch (error) {
+                console.error('Error during checkout:', error);
+                showMessage('Checkout Failed', error.message || 'There was an issue processing your order. Please try again.');
+            }
+        }
+
+        // --- User Authentication ---
+
+        /**
+         * Handles user registration by sending data to the backend.
+         * @param {Event} event - The form submission event.
+         */
+        async function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+
+            if (username.length < 3) {
+                showMessage('Registration Failed', 'Username must be at least 3 characters long.');
+                return;
+            }
+            if (password.length < 6) {
+                showMessage('Registration Failed', 'Password must be at least 6 characters long.');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showMessage('Registration Failed', 'Passwords do not match.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage('Registration Successful', data.message || 'Account created successfully! You can now log in.');
+                    document.getElementById('register-form').reset();
+                    showPage('login');
+                } else {
+                    showMessage('Registration Failed', data.message || 'An error occurred during registration.');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage('Registration Failed', 'Could not connect to the server. Please ensure the backend is running.');
+            }
+        }
+
+        /**
+         * Handles user login by sending data to the backend and storing JWT.
+         * @param {Event} event - The form submission event.
+         */
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    token = data.token;
+                    currentUser = { username: data.username, userId: data.userId };
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateAuthUI();
+                    showMessage('Login Successful', `Welcome back, ${currentUser.username}!`);
+                    showPage('product-listing');
+                } else {
+                    showMessage('Login Failed', data.message || 'Invalid username or password.');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('Login Failed', 'Could not connect to the server. Please ensure the backend is running.');
+            }
+        }
+
+        /**
+         * Logs out the current user by clearing local storage and updating UI.
+         */
+        function logout() {
+            currentUser = null;
+            token = null;
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('token');
+            updateAuthUI();
+            showMessage('Logged Out', 'You have been logged out.');
+            showPage('product-listing');
+        }
+
+        /**
+         * Updates the header UI based on login status.
+         */
+        function updateAuthUI() {
+            const authLinks = document.getElementById('auth-links');
+            const userInfo = document.getElementById('user-info');
+            const loggedInUsername = document.getElementById('logged-in-username');
+
+            if (token && currentUser) { // Check for token and currentUser object
+                authLinks.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                loggedInUsername.textContent = currentUser.username;
+            } else {
+                authLinks.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+            }
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts(); // Load products on startup
+            updateCartCount(); // Update cart count from local storage
+            updateAuthUI(); // Update UI based on current user status
+            showPage('product-listing'); // Show product listing by default
+        });
+
+    </script>
+</body>
+</html>
